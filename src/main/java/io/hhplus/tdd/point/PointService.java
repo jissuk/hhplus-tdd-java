@@ -8,13 +8,24 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 @RequiredArgsConstructor
 public class PointService {
 
+
     private final UserPointTable userPointTable;
     private final PointHistoryTable pointHistoryTable;
+
+
+    /* key 값으로는 모두 동일하게 UserId가 들어간다.*/
+    private final Map<Long, ReentrantLock> locks = new ConcurrentHashMap<>();
+    private final Map<Long, AtomicLong> userPoints = new ConcurrentHashMap<>();
+
 
     // 포인트 조회
     public UserPoint selectById(long id) {
@@ -36,41 +47,65 @@ public class PointService {
     // 포인트 충전
     public UserPoint chargePoint(long id, long amount){
 
-        // 기존 포인트 조회
-        UserPoint userPoint = findUserPointOrThrow(id);
+        // userId 별로 고유한 락을 공유하게 된다.
+        ReentrantLock lock = locks.computeIfAbsent(id, userId -> new ReentrantLock());
 
-        // 포인트 충전
-        userPoint.charge(amount);
+        // lock을 통해 고유한 락을 공유하는 스레드들끼리 블로킹(대기)된다.
+        lock.lock();
+        try {
+            // 기존 포인트 조회
+            UserPoint userPoint = findUserPointOrThrow(id);
+            long dbPoint = userPoint.getPoint();
 
-        // 포인트 충전(DB)
-        userPointTable.insertOrUpdate(id, userPoint.getPoint());
+            AtomicLong point = userPoints.computeIfAbsent(id, userId -> new AtomicLong(dbPoint));
 
-        // 충전 후 포인트 조회
-        UserPoint afterPoint = userPointTable.selectById(id);
+            // 포인트 충전
+            long resultPoint = point.addAndGet(amount);
 
-        // 포인트 내역 추가 및 현재 포인트 리턴
-        pointHistoryTable.insert(id, amount, TransactionType.CHARGE, System.currentTimeMillis());
-        return afterPoint;
+            // 포인트 충전(DB)
+            userPointTable.insertOrUpdate(id, resultPoint);
+
+            // 충전 후 포인트 조회
+            UserPoint afterPoint = userPointTable.selectById(id);
+
+            // 포인트 내역 추가 및 현재 포인트 리턴
+            pointHistoryTable.insert(id, amount, TransactionType.CHARGE, System.currentTimeMillis());
+            return afterPoint;
+        } finally {
+            lock.unlock();
+        }
+
     }
 
     // 포인트 사용
     public UserPoint usePoint(long id, long amount){
+        ReentrantLock lock = locks.computeIfAbsent(id, userId -> new ReentrantLock());
 
-        // 기존 포인트 조회
-        UserPoint userPoint = findUserPointOrThrow(id);
+        // lock을 통해 스레드는 여기서 블로킹(대기)된다.
+        lock.lock();
+        try {
+            // 기존 포인트 조회
+            UserPoint userPoint = findUserPointOrThrow(id);
+            long dbPoint = userPoint.getPoint();
 
-        // 포인트 사용
-        userPoint.use(amount);
+            AtomicLong point = userPoints.computeIfAbsent(id, userId -> new AtomicLong(dbPoint));
 
-        // 포인트 사용(DB)
-        userPointTable.insertOrUpdate(id, userPoint.getPoint());
+            // 포인트 사용
+            long resultPoint = point.addAndGet(-amount);
 
-        // 충전 후 포인트 조회
-        UserPoint afterPoint = userPointTable.selectById(id);
+            // 포인트 사용(DB)
+            userPointTable.insertOrUpdate(id, resultPoint);
 
-        // 충전 사용이 성공했을 경우 포인트 내역 추가 리턴
-        pointHistoryTable.insert(id, amount, TransactionType.USE, System.currentTimeMillis());
-        return afterPoint;
+            // 사용 후 포인트 조회
+            UserPoint afterPoint = userPointTable.selectById(id);
+
+            // 포인트 내역 추가 및 현재 포인트 리턴
+            pointHistoryTable.insert(id, amount, TransactionType.USE, System.currentTimeMillis());
+            return afterPoint;
+
+        } finally {
+            lock.unlock();
+        }
     }
 
     private UserPoint findUserPointOrThrow(long id) {
@@ -81,3 +116,4 @@ public class PointService {
         return userPoint;
     }
 }
+
