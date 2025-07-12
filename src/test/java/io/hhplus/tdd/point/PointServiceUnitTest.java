@@ -3,6 +3,7 @@ package io.hhplus.tdd.point;
 
 import io.hhplus.tdd.database.PointHistoryTable;
 import io.hhplus.tdd.database.UserPointTable;
+import io.hhplus.tdd.point.Service.PointService;
 import io.hhplus.tdd.point.exception.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,7 +55,7 @@ public class PointServiceUnitTest {
                 .isInstanceOf(HistoryNotFoundException.class)
                 .hasMessage("포인트 내역 조회에 실패하였습니다.");
     }
-    
+
     @Test
     void 포인트_충전금액_0이하_예외발생(){
 
@@ -81,12 +82,12 @@ public class PointServiceUnitTest {
 
         // when & then
         assertThatThrownBy(() -> pointService.chargePoint(
-                                                    id,
-                                                    amount
-                                                    )
-                            )
-                            .isInstanceOf(PointLimitExceededException.class)
-                            .hasMessage("충전하려는 금액이 한도를 초과하였습니다.");
+                        id,
+                        amount
+                )
+        )
+                .isInstanceOf(PointLimitExceededException.class)
+                .hasMessage("충전하려는 금액이 한도를 초과하였습니다.");
     }
 
     @Test

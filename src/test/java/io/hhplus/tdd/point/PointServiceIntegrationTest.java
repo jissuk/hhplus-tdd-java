@@ -1,4 +1,5 @@
 package io.hhplus.tdd.point;
+import io.hhplus.tdd.point.Service.PointService;
 import io.hhplus.tdd.database.UserPointTable;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

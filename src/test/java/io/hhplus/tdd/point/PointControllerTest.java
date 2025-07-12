@@ -1,7 +1,9 @@
 package io.hhplus.tdd.point;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.hhplus.tdd.point.Service.PointService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -56,18 +58,18 @@ public class PointControllerTest {
     }
 
     // 로직이 기본 값을 무조건 반환하게 되어있어 테스트 불가능
-//    @Test
-//    @DisplayName("포인트_조회_잘못된ID_테스트")
-//    void 포인트_조회_예외_테스트() throws Exception {
-//        // given
-//        long id = 99L;
-//
-//        // when
-//        mockMvc.perform(get("/point/{id}",id)
-//                        .contentType(MediaType.APPLICATION_JSON))
-//                // then
-//                .andExpect(status().isNotFound());
-//    }
+    @Test
+    @Disabled
+    void 포인트_조회_예외_테스트() throws Exception {
+        // given
+        long id = 99L;
+
+        // when
+        mockMvc.perform(get("/point/{id}",id)
+                        .contentType(MediaType.APPLICATION_JSON))
+                // then
+                .andExpect(status().isNotFound());
+    }
 
     @Test
     void 포인트_내역_조회_테스트() throws Exception {
