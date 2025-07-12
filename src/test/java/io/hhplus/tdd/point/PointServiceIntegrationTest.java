@@ -46,7 +46,7 @@ public class PointServiceIntegrationTest {
     void 포인트_사용로직_테스트(){
 
         // given
-        long id = 1L;
+        long id = 2L;
         long amount = 3000L;
         long defalutAmount = 10000L;
         userPointTable.insertOrUpdate(id, defalutAmount);
@@ -65,7 +65,7 @@ public class PointServiceIntegrationTest {
     @Test
     void 동시에_100번_요청해도_포인트_충전되는지_테스트() throws InterruptedException {
         // given
-        long id = 1L;
+        long id = 3L;
         long amount = 100L;
         int threadCount = 100;
         ExecutorService executor = Executors.newFixedThreadPool(10);
@@ -87,7 +87,7 @@ public class PointServiceIntegrationTest {
     @Test
     void 동시에_100번_요청해도_포인트_사용되는지_테스트() throws InterruptedException {
         // given
-        long id = 1L;
+        long id = 4L;
         long amount = 100L;
         long defalutAmount = 20000L;
         userPointTable.insertOrUpdate(id, defalutAmount);
@@ -112,7 +112,7 @@ public class PointServiceIntegrationTest {
     @Test
     void 동시에_100번_요청해도_포인트_충전및사용되는지_테스트() throws InterruptedException {
         // given
-        long id = 1L;
+        long id = 5L;
         long chargeAmount = 100L;          // 100 포인트 50번 충전
         long useAmount = 200L;             // 200 포인트 50번 사용
         long defalutAmount = 30000L;       // 시작 금액

@@ -40,7 +40,7 @@ public class PointService {
     public List<PointHistory> selectAllByUserId(long id) {
         List<PointHistory> pointHistories = pointHistoryTable.selectAllByUserId(id);
 
-        if(pointHistories.isEmpty()) {
+        if(pointHistories == null || pointHistories.isEmpty()) {
             throw new HistoryNotFoundException("포인트 내역이 존재하지 않습니다.");
         }
 

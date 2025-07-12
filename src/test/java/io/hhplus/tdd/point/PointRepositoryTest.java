@@ -28,23 +28,29 @@ public class PointRepositoryTest {
 
         // given
         long id = 1L;
-        UserPoint point = new  UserPoint(1L, 3000, System.currentTimeMillis());
+        long amount = 3000L;
+        userPointTable.insertOrUpdate(id, amount);
 
-        // when & then
-        assertThat(userPointTable.selectById(id))
-                .usingRecursiveComparison()
-                .isEqualTo(point);
+        // when
+        UserPoint userPoint = userPointTable.selectById(id);
+
+        // then
+        assertThat(userPoint.getId()).isEqualTo(id);
+        assertThat(userPoint.getPoint()).isEqualTo(amount);
+
     }
 
     @Test
     void 포인트_충전사용내역_조회_테스트() {
         // given
-        long id = 1L;
+        long id = 2L;
         long time = System.currentTimeMillis();
         List<PointHistory> pointHistories = List.of(
                 new PointHistory(1L, id, 4000, TransactionType.CHARGE, time),
                 new PointHistory(2L, id, 3000, TransactionType.USE, time)
         );
+        pointHistoryTable.insert(id, pointHistories.get(0).amount(), pointHistories.get(0).type(), time);
+        pointHistoryTable.insert(id, pointHistories.get(1).amount(), pointHistories.get(0).type(), time);
 
         // when
         List<PointHistory> resultList = pointHistoryTable.selectAllByUserId(id);
@@ -58,7 +64,7 @@ public class PointRepositoryTest {
     @Test
     void 포인트_충전_사용_테스트() throws Exception {
         // given
-        long id = 1L;
+        long id = 3L;
         long beforePoint = 3000L;
         long afterPoint = 4000L;
         userPointTable.insertOrUpdate(id, beforePoint);

@@ -11,6 +11,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -33,15 +35,6 @@ public class PointControllerTest {
     @Autowired
     private PointService pointService;
 
-
-    static final long defalutId = 1l;
-    static final long dealutPoint = 3000L;
-
-    @BeforeEach
-    public void pointSetup() {
-        pointService.chargePoint(defalutId, dealutPoint);
-    }
-
     @Test
     void 포인트_조회_테스트() throws Exception {
         // given
@@ -50,10 +43,10 @@ public class PointControllerTest {
 
         // when
         mockMvc.perform(get("/point/{id}",id)
-                        .contentType(MediaType.APPLICATION_JSON)) // Mock.perform을 통해 Http 요청을 테스트
+                        .contentType(MediaType.APPLICATION_JSON))                         // Mock.perform을 통해 Http 요청을 테스트
                         // then
-                        .andExpect(status().isOk())                                              // HttpStatus 검증
-                        .andExpect(jsonPath("$.id").value(id))                          // responseBody 필드 검증
+                        .andExpect(status().isOk())                                       // HttpStatus 검증
+                        .andExpect(jsonPath("$.id").value(id))                   // responseBody 필드 검증
                         .andExpect(jsonPath("$.point").value(amount));
     }
 
@@ -74,9 +67,13 @@ public class PointControllerTest {
     @Test
     void 포인트_내역_조회_테스트() throws Exception {
         // given
-        long id = 1L;
-        long useAmount = 2000L;
+        long id = 2L;
+        long secoundId = 3L;
+        long useAmount = 3000L;
+        long chargeAmount = 4000L;
+
         pointService.usePoint(id, useAmount);
+        pointService.usePoint(secoundId, chargeAmount);
 
         // when
         mockMvc.perform(get("/point/{id}/histories",id)
@@ -85,14 +82,14 @@ public class PointControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.length()").value(2))
                     .andExpect(jsonPath("$[0].userId").value(id))
-                    .andExpect(jsonPath("$[1].amount").value(useAmount))
-                    .andExpect(jsonPath("$[1].type").value(TransactionType.USE.name()));
+                    .andExpect(jsonPath("$[1].amount").value(chargeAmount))
+                    .andExpect(jsonPath("$[1].type").value(TransactionType.CHARGE.name()));
     }
 
     @Test
     void 포인트_내역_조회_내역존재하지않음_테스트() throws Exception {
         // given
-        long id = 2L;
+        long id = 4L;
 
         // when
         mockMvc.perform(get("/point/{id}/histories",id)
@@ -104,9 +101,12 @@ public class PointControllerTest {
     @Test
     void 포인트_충전_테스트() throws Exception {
         // given
-        long id = 1L;
+        long id = 5L;
+        long amount = 3000L;
         long chareAmount = 4000L;
-        long resultAmount = dealutPoint + chareAmount;
+        pointService.chargePoint(id, amount);
+
+        long resultAmount = amount + chareAmount;
 
         // when
         mockMvc.perform(patch("/point/{id}/charge",id)
@@ -123,7 +123,7 @@ public class PointControllerTest {
     void 포인트_충전금액_0이하_예외발생_테스트() throws Exception {
 
         // given
-        long id = 1L;
+        long id = 6L;
         long chareAmount = 0;
 
         // when
@@ -139,7 +139,7 @@ public class PointControllerTest {
     void 포인트_충전_잔고한도초과_예외발생_테스트() throws Exception {
 
         // given
-        long id = 1L;
+        long id = 7L;
         long amount = 110000;
 
         // when
@@ -155,9 +155,11 @@ public class PointControllerTest {
     @Test
     void 포인트_사용_테스트() throws Exception {
         // given
-        long id = 1L;
+        long id = 8L;
+        long amount = 4000L;
         long useAmount = 3000L;
-        long resultAmount = dealutPoint - useAmount;
+        pointService.chargePoint(id, amount);
+        long resultAmount = amount - useAmount;
 
         // when
         mockMvc.perform(patch("/point/{id}/use", id)
@@ -173,7 +175,7 @@ public class PointControllerTest {
     @Test
     void 포인트_사용_잔액부족_예외발생_테스트() throws Exception {
         // given
-        long id = 1L;
+        long id = 9L;
         long amount = 4000L;
 
         // when

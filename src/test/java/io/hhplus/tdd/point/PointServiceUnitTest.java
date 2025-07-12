@@ -53,7 +53,7 @@ public class PointServiceUnitTest {
         // when & then
         assertThatThrownBy(() -> pointService.selectAllByUserId(id))
                 .isInstanceOf(HistoryNotFoundException.class)
-                .hasMessage("포인트 내역 조회에 실패하였습니다.");
+                .hasMessage("포인트 내역이 존재하지 않습니다.");
     }
 
     @Test
@@ -75,7 +75,7 @@ public class PointServiceUnitTest {
     void 포인트_충전_잔고한도초과_예외발생(){
 
         // given
-        long id = 1L;
+        long id = 2L;
         long amount = 110000;
         UserPoint userPoint = new UserPoint(id, 0L, System.currentTimeMillis());
         when(userPointTable.selectById(id)).thenReturn(userPoint);
@@ -94,7 +94,7 @@ public class PointServiceUnitTest {
     void 포인트_사용_잔액부족_예외발생(){
 
         // given
-        long id = 1L;
+        long id = 3L;
         long amount = 110000;
         UserPoint userPoint = new UserPoint(id, 0L, System.currentTimeMillis());
         when(userPointTable.selectById(id)).thenReturn(userPoint);
