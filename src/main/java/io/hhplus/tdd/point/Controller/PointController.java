@@ -1,5 +1,8 @@
-package io.hhplus.tdd.point;
+package io.hhplus.tdd.point.Controller;
 
+import io.hhplus.tdd.point.PointHistory;
+import io.hhplus.tdd.point.Service.PointService;
+import io.hhplus.tdd.point.UserPoint;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
