@@ -1,4 +1,4 @@
-package io.hhplus.tdd.Service;
+package io.hhplus.tdd.point.Service;
 
 import io.hhplus.tdd.database.PointHistoryTable;
 import io.hhplus.tdd.database.UserPointTable;
@@ -56,53 +56,33 @@ public class PointService {
         // lock을 통해 고유한 락을 공유하는 스레드들끼리 블로킹(대기)된다.
         lock.lock();
         try {
-            // 기존 포인트 조회
             UserPoint userPoint = findUserPointOrThrow(id);
-            long dbPoint = userPoint.getPoint();
+            userPoint.charge(amount);
 
-            AtomicLong point = userPoints.computeIfAbsent(id, userId -> new AtomicLong(dbPoint));
+            userPointTable.insertOrUpdate(id, userPoint.getPoint());
 
-            // 포인트 충전
-            long resultPoint = point.addAndGet(amount);
-
-            // 포인트 충전(DB)
-            userPointTable.insertOrUpdate(id, resultPoint);
-
-            // 충전 후 포인트 조회
             UserPoint afterPoint = userPointTable.selectById(id);
 
-            // 포인트 내역 추가 및 현재 포인트 리턴
             pointHistoryTable.insert(id, amount, TransactionType.CHARGE, System.currentTimeMillis());
             return afterPoint;
         } finally {
             lock.unlock();
         }
-
     }
 
     // 포인트 사용
     public UserPoint usePoint(long id, long amount){
         ReentrantLock lock = locks.computeIfAbsent(id, userId -> new ReentrantLock());
 
-        // lock을 통해 스레드는 여기서 블로킹(대기)된다.
         lock.lock();
         try {
-            // 기존 포인트 조회
             UserPoint userPoint = findUserPointOrThrow(id);
-            long dbPoint = userPoint.getPoint();
+            userPoint.use(amount);
 
-            AtomicLong point = userPoints.computeIfAbsent(id, userId -> new AtomicLong(dbPoint));
+            userPointTable.insertOrUpdate(id, userPoint.getPoint());
 
-            // 포인트 사용
-            long resultPoint = point.addAndGet(-amount);
-
-            // 포인트 사용(DB)
-            userPointTable.insertOrUpdate(id, resultPoint);
-
-            // 사용 후 포인트 조회
             UserPoint afterPoint = userPointTable.selectById(id);
 
-            // 포인트 내역 추가 및 현재 포인트 리턴
             pointHistoryTable.insert(id, amount, TransactionType.USE, System.currentTimeMillis());
             return afterPoint;
 
