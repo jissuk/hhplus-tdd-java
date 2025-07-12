@@ -17,6 +17,7 @@ public class PointHistoryTable {
     private final List<PointHistory> table = new ArrayList<>();
     private long cursor = 1;
 
+    // 사용 및 충전 내역 추가
     public PointHistory insert(long userId, long amount, TransactionType type, long updateMillis) {
         throttle(300L);
         PointHistory pointHistory = new PointHistory(cursor++, userId, amount, type, updateMillis);
@@ -24,6 +25,7 @@ public class PointHistoryTable {
         return pointHistory;
     }
 
+    // 사용자 Id를 통해 내역 모든 내역 조회
     public List<PointHistory> selectAllByUserId(long userId) {
         return table.stream().filter(pointHistory -> pointHistory.userId() == userId).toList();
     }

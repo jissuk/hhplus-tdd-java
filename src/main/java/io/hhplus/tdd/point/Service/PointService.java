@@ -1,7 +1,10 @@
-package io.hhplus.tdd.point;
+package io.hhplus.tdd.Service;
 
 import io.hhplus.tdd.database.PointHistoryTable;
 import io.hhplus.tdd.database.UserPointTable;
+import io.hhplus.tdd.point.PointHistory;
+import io.hhplus.tdd.point.TransactionType;
+import io.hhplus.tdd.point.UserPoint;
 import io.hhplus.tdd.point.exception.HistoryNotFoundException;
 import io.hhplus.tdd.point.exception.PointNotFoundException;
 import lombok.RequiredArgsConstructor;
